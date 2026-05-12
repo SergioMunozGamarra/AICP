@@ -1,0 +1,8 @@
+{
+  "hold_id": "hold_456",
+  "payment_method_id": "pm_001",
+  "passenger": {
+    "full_name": "Alex Doe",
+    "email": "alex@example.com"
+  }
+}

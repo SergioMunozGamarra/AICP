@@ -1,0 +1,21 @@
+{
+  "origin": "MAD",
+  "destination": "TYO",
+  "departure_window": {
+    "start": "2026-07-01",
+    "end": "2026-07-15"
+  },
+  "trip_duration_days": {
+    "min": 10,
+    "max": 14
+  },
+  "passengers": 1,
+  "constraints": {
+    "max_stops": 1,
+    "checked_baggage": true,
+    "max_price": {
+      "amount": 700,
+      "currency": "EUR"
+    }
+  }
+}

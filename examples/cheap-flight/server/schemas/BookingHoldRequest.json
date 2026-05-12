@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "fare_id": {
+      "type": "string",
+      "description": "Unique identifier of the fare to hold"
+    },
+    "passenger_count": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": ["fare_id", "passenger_count"]
+}

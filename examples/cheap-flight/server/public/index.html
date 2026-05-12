@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AICP Agent Demo - Cheap Flight Search</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .risk-low { @apply bg-green-50 border-green-200; }
+    .risk-medium { @apply bg-yellow-50 border-yellow-200; }
+    .risk-high { @apply bg-red-50 border-red-200; }
+    .badge-low { @apply bg-green-200 text-green-800; }
+    .badge-medium { @apply bg-yellow-200 text-yellow-800; }
+    .badge-high { @apply bg-red-200 text-red-800; }
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">✈️ AICP Agent Demo</h1>
+          <p class="text-sm text-gray-600">Cheap Flight Search with Explicit Interaction Contracts</p>
+        </div>
+        <div id="status" class="text-sm text-gray-500">Connecting...</div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+      
+      <!-- Contract Discovery Panel -->
+      <div id="contract-panel" class="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">📋 Contract Discovery</h2>
+        <div class="bg-gray-50 rounded p-4 text-sm font-mono whitespace-pre-wrap text-gray-700" id="contract-display">
+          Loading contract...
+        </div>
+        <button id="toggle-contract" class="mt-4 text-sm text-blue-600 hover:text-blue-800">Show Full Contract</button>
+      </div>
+
+      <!-- Search Form -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">🔍 Flight Search (LOW RISK)</h2>
+        <form id="search-form" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="origin" placeholder="From (e.g., MAD)" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="MAD">
+            <input type="text" id="destination" placeholder="To (e.g., TYO)" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="TYO">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <input type="date" id="dep-start" class="px-3 py-2 border border-gray-300 rounded-lg" value="2026-07-01">
+            <input type="date" id="dep-end" class="px-3 py-2 border border-gray-300 rounded-lg" value="2026-07-15">
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <input type="number" id="max-stops" placeholder="Max stops" class="px-3 py-2 border border-gray-300 rounded-lg" value="1">
+            <input type="number" id="max-price" placeholder="Max price (EUR)" class="px-3 py-2 border border-gray-300 rounded-lg" value="700">
+            <label class="flex items-center gap-2 px-3 py-2">
+              <input type="checkbox" id="baggage" checked> Baggage
+            </label>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+            Search Flights
+          </button>
+        </form>
+      </div>
+
+      <!-- Results -->
+      <div id="results-section" class="hidden space-y-4">
+        
+        <!-- Flight Results -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">📊 Search Results (AOM Data Plane)</h2>
+          <div id="results-display" class="space-y-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Available Actions -->
+        <div class="bg-blue-50 rounded-lg border border-blue-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">⚡ Next Actions Available (AOM Action Plane)</h2>
+          <div id="actions-display" class="space-y-2">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Provenance & Freshness -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-purple-50 rounded-lg border border-purple-200 p-4">
+            <h3 class="font-semibold text-purple-900 mb-2">📌 Provenance</h3>
+            <div id="provenance-display" class="text-sm text-purple-700 space-y-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div class="bg-orange-50 rounded-lg border border-orange-200 p-4">
+            <h3 class="font-semibold text-orange-900 mb-2">⏱️ Freshness</h3>
+            <div id="freshness-display" class="text-sm text-orange-700 space-y-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Warnings -->
+        <div id="warnings-section" class="hidden">
+          <div class="bg-red-50 rounded-lg border border-red-200 p-4">
+            <h3 class="font-semibold text-red-900 mb-2">⚠️ Warnings</h3>
+            <div id="warnings-display" class="text-sm text-red-700 space-y-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Watch Setup (after search) -->
+      <div id="watch-section" class="hidden bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span class="badge badge-low px-2 py-1 rounded text-xs font-semibold">LOW RISK</span>
+          👀 Set Price Watch
+        </h2>
+        <p class="text-gray-600 mb-4">Monitor this fare for price changes</p>
+        <button id="watch-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">
+          Enable Price Watch
+        </button>
+      </div>
+
+      <!-- Hold Booking (after search) -->
+      <div id="hold-section" class="hidden bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span class="badge badge-medium px-2 py-1 rounded text-xs font-semibold">MEDIUM RISK</span>
+          🔒 Hold This Fare
+        </h2>
+        <p class="text-gray-600 mb-4">Reserve the fare for 10 minutes (reversible, no charge)</p>
+        <button id="hold-btn" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 font-semibold">
+          Hold Fare (Requires Confirmation)
+        </button>
+      </div>
+
+      <!-- Purchase Booking (after hold) -->
+      <div id="purchase-section" class="hidden bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span class="badge badge-high px-2 py-1 rounded text-xs font-semibold">HIGH RISK</span>
+          💳 Complete Purchase
+        </h2>
+        <p class="text-gray-600 mb-4">Finalize booking and charge payment method</p>
+        <button id="purchase-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold">
+          Purchase (Requires Explicit Confirmation)
+        </button>
+      </div>
+
+      <!-- Status Messages -->
+      <div id="messages" class="space-y-2"></div>
+
+    </main>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg max-w-md w-full fade-in">
+      <div id="modal-header" class="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+        <span id="modal-icon" class="text-2xl">⚠️</span>
+        <h3 id="modal-title" class="text-lg font-semibold">Confirm Action</h3>
+      </div>
+      <div id="modal-body" class="px-6 py-4 space-y-3 max-h-64 overflow-y-auto">
+        <!-- Populated by JS -->
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 flex gap-2">
+        <button id="modal-cancel" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold">
+          Cancel
+        </button>
+        <button id="modal-confirm" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    const AUTH_TOKEN = 'demo-token';
+    let currentFareId = null;
+    let currentHoldId = null;
+    let contractFull = false;
+
+    function authHeaders(extra = {}) {
+      return {
+        Authorization: `Bearer ${AUTH_TOKEN}`,
+        ...extra
+      };
+    }
+
+    async function fetchJson(path, options = {}) {
+      const res = await fetch(`${API}${path}`, options);
+      const contentType = res.headers.get('content-type') || '';
+      const raw = await res.text();
+
+      let parsed = null;
+      if (contentType.includes('json') || contentType.includes('+json')) {
+        try {
+          parsed = JSON.parse(raw);
+        } catch (err) {
+          throw new Error(`Invalid JSON response from ${path}`);
+        }
+      }
+
+      if (!res.ok) {
+        const msg = parsed && parsed.error ? parsed.error : `Request failed (${res.status})`;
+        throw new Error(msg);
+      }
+
+      if (!parsed) {
+        const sample = raw.slice(0, 40).replace(/\s+/g, ' ');
+        throw new Error(`Expected JSON from ${path}, got ${contentType || 'unknown'}: ${sample}`);
+      }
+
+      return parsed;
+    }
+
+    // Initialize
+    async function init() {
+      try {
+        const contract = await fetchJson('/.well-known/agent-interface.json');
+        showStatus('✓ Contract discovered', 'success');
+        displayContract(contract);
+      } catch (e) {
+        showStatus('✗ Cannot connect to server. Start with: make server', 'error');
+        console.error(e);
+      }
+    }
+
+    function displayContract(contract) {
+      const summary = `AICP Version: ${contract.aicp_version}
+Site: ${contract.site.name}
+Origin: ${contract.site.origin}
+
+Capabilities:
+${contract.capabilities.map(c => 
+  `• ${c.id} (${c.type}) - Risk: ${c.risk_level.toUpperCase()}`
+).join('\n')}`;
+
+      document.getElementById('contract-display').textContent = summary;
+    }
+
+    function showStatus(msg, type = 'info') {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = type === 'error' ? 'text-red-600' : 
+                    type === 'success' ? 'text-green-600' : 'text-gray-500';
+    }
+
+    function addMessage(msg, type = 'info') {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = `p-3 rounded-lg ${
+        type === 'error' ? 'bg-red-100 text-red-700' :
+        type === 'success' ? 'bg-green-100 text-green-700' :
+        'bg-blue-100 text-blue-700'
+      } fade-in`;
+      div.textContent = msg;
+      container.appendChild(div);
+      setTimeout(() => div.remove(), 5000);
+    }
+
+    // Search
+    document.getElementById('search-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showStatus('Searching...', 'info');
+
+      const payload = {
+        origin: document.getElementById('origin').value,
+        destination: document.getElementById('destination').value,
+        departure_window: {
+          start: document.getElementById('dep-start').value,
+          end: document.getElementById('dep-end').value
+        },
+        passengers: 1,
+        constraints: {
+          max_stops: parseInt(document.getElementById('max-stops').value),
+          checked_baggage: document.getElementById('baggage').checked,
+          max_price: {
+            amount: parseInt(document.getElementById('max-price').value),
+            currency: 'EUR'
+          }
+        }
+      };
+
+      try {
+        const aom = await fetchJson('/agent/flights/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        displayResults(aom);
+        showStatus('✓ Search complete', 'success');
+        addMessage('Flight search completed successfully');
+      } catch (e) {
+        showStatus('✗ Search failed', 'error');
+        addMessage(`Error: ${e.message}`, 'error');
+      }
+    });
+
+    function displayResults(aom) {
+      // Data plane
+      const resultsDiv = document.getElementById('results-display');
+      resultsDiv.innerHTML = '';
+      if (aom.data.results[0]) {
+        const fare = aom.data.results[0];
+        currentFareId = fare.id;
+        resultsDiv.innerHTML = `
+          <div class="border border-green-300 bg-green-50 rounded p-4 space-y-2">
+            <div class="font-semibold text-green-900">${fare.origin} → ${fare.destination}</div>
+            <div class="text-sm text-gray-700">
+              <div>Departure: ${new Date(fare.departure_time).toLocaleString()}</div>
+              <div>Arrival: ${new Date(fare.arrival_time).toLocaleString()}</div>
+              <div>Airline: ${fare.airline}</div>
+              <div>Stops: ${fare.stops}</div>
+              <div>Baggage: ${fare.checked_baggage_included ? '✓ Included' : '✗ Not included'}</div>
+            </div>
+            <div class="text-xl font-bold text-green-700">€${fare.price.amount} ${fare.price.currency}</div>
+          </div>
+        `;
+      }
+
+      // Actions plane
+      const actionsDiv = document.getElementById('actions-display');
+      actionsDiv.innerHTML = aom.actions.map(action => `
+        <div class="flex items-center justify-between p-3 bg-white rounded border border-blue-300">
+          <div>
+            <div class="font-semibold text-gray-900">${action.label}</div>
+            <div class="text-xs text-gray-600">Risk: <span class="badge-${action.risk_level} px-1 py-0.5 rounded text-xs font-semibold">${action.risk_level}</span></div>
+          </div>
+        </div>
+      `).join('');
+
+      // Provenance
+      const provDiv = document.getElementById('provenance-display');
+      provDiv.innerHTML = `
+        <div>Source: ${aom.provenance.source}</div>
+        <div>Retrieved: ${new Date(aom.provenance.retrieved_at).toLocaleString()}</div>
+        <div class="text-xs break-all">URL: ${aom.provenance.canonical_url}</div>
+      `;
+
+      // Freshness
+      const freshDiv = document.getElementById('freshness-display');
+      freshDiv.innerHTML = `
+        <div>Valid until: ${new Date(aom.freshness.valid_until).toLocaleTimeString()}</div>
+        <div>Volatility: <span class="badge-high px-1 rounded text-xs font-semibold">${aom.freshness.volatility.toUpperCase()}</span></div>
+        <div>${aom.freshness.revalidation_required_before_commit ? '⚠️ Revalidate before purchase' : '✓ Stable'}</div>
+      `;
+
+      // Warnings
+      if (aom.warnings && aom.warnings.length > 0) {
+        document.getElementById('warnings-section').classList.remove('hidden');
+        const warnDiv = document.getElementById('warnings-display');
+        warnDiv.innerHTML = aom.warnings.map(w => `
+          <div>⚠️ <strong>${w.code}:</strong> ${w.message}</div>
+        `).join('');
+      }
+
+      // Show action buttons
+      document.getElementById('results-section').classList.remove('hidden');
+      document.getElementById('watch-section').classList.remove('hidden');
+      document.getElementById('hold-section').classList.remove('hidden');
+    }
+
+    // Watch
+    document.getElementById('watch-btn')?.addEventListener('click', async () => {
+      if (!currentFareId) return;
+      showConfirmation({
+        icon: '👀',
+        title: 'Enable Price Watch',
+        risk: 'LOW',
+        items: [
+          'Fare ID: ' + currentFareId,
+          'Threshold: €700',
+          'Notification: Agent channel'
+        ],
+        details: 'No charge. Reversible at any time.',
+        onConfirm: async () => {
+          try {
+            const aom = await fetchJson('/agent/fares/watch', {
+              method: 'POST',
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
+              body: JSON.stringify({
+                fare_id: currentFareId,
+                threshold: { amount: 700, currency: 'EUR' },
+                notification_channel: 'agent'
+              })
+            });
+            addMessage(`✓ Price watch enabled (ID: ${aom.data.watch_id})`, 'success');
+          } catch (e) {
+            addMessage(`Error: ${e.message}`, 'error');
+          }
+        }
+      });
+    });
+
+    // Hold
+    document.getElementById('hold-btn')?.addEventListener('click', async () => {
+      if (!currentFareId) return;
+      showConfirmation({
+        icon: '🔒',
+        title: 'Hold This Fare',
+        risk: 'MEDIUM',
+        items: [
+          'Fare ID: ' + currentFareId,
+          'Passengers: 1',
+          'Duration: 10 minutes',
+          'Charge: None'
+        ],
+        details: 'This action is reversible. You will not be charged.',
+        onConfirm: async () => {
+          try {
+            const aom = await fetchJson('/agent/bookings/hold', {
+              method: 'POST',
+              headers: authHeaders({
+                'Content-Type': 'application/json',
+                'Idempotency-Key': 'hold_' + Date.now()
+              }),
+              body: JSON.stringify({
+                fare_id: currentFareId,
+                passenger_count: 1
+              })
+            });
+            currentHoldId = aom.data.hold_id;
+            addMessage(`✓ Fare held (ID: ${currentHoldId}). Expires at ${new Date(aom.data.expires_at).toLocaleTimeString()}`, 'success');
+            document.getElementById('hold-section').classList.add('hidden');
+            document.getElementById('purchase-section').classList.remove('hidden');
+          } catch (e) {
+            addMessage(`Error: ${e.message}`, 'error');
+          }
+        }
+      });
+    });
+
+    // Purchase
+    document.getElementById('purchase-btn')?.addEventListener('click', async () => {
+      if (!currentHoldId) return;
+      showConfirmation({
+        icon: '💳',
+        title: 'Complete Purchase',
+        risk: 'HIGH',
+        items: [
+          'Hold ID: ' + currentHoldId,
+          'Amount: €682.00 EUR',
+          'Passenger: Alex Doe',
+          'Flight: MAD → NRT'
+        ],
+        details: '⚠️ This will CHARGE your payment method. Non-refundable for second leg.',
+        onConfirm: async () => {
+          try {
+            const idempotencyKey = 'key_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const aom = await fetchJson('/agent/bookings/purchase', {
+              method: 'POST',
+              headers: authHeaders({
+                'Content-Type': 'application/json',
+                'Idempotency-Key': idempotencyKey
+              }),
+              body: JSON.stringify({
+                hold_id: currentHoldId,
+                payment_method_id: 'pm_001',
+                passenger: {
+                  full_name: 'Alex Doe',
+                  email: 'alex@example.com'
+                }
+              })
+            });
+            addMessage(`✓ BOOKING CONFIRMED! Ticket: ${aom.data.ticket_numbers[0]}, Charged: €${aom.data.charged_amount.amount}`, 'success');
+            document.getElementById('purchase-section').classList.add('hidden');
+          } catch (e) {
+            addMessage(`Error: ${e.message}`, 'error');
+          }
+        }
+      });
+    });
+
+    function showConfirmation(config) {
+      const modal = document.getElementById('modal');
+      const header = document.getElementById('modal-header');
+      const title = document.getElementById('modal-title');
+      const icon = document.getElementById('modal-icon');
+      const body = document.getElementById('modal-body');
+      const confirm = document.getElementById('modal-confirm');
+
+      icon.textContent = config.icon;
+      title.textContent = config.title;
+
+      const riskColor = config.risk === 'HIGH' ? 'badge-high' : 
+                       config.risk === 'MEDIUM' ? 'badge-medium' : 'badge-low';
+      
+      body.innerHTML = `
+        <div class="font-semibold text-sm mb-2">
+          Risk Level: <span class="badge-${config.risk.toLowerCase()} px-2 py-1 rounded text-xs font-semibold">${config.risk}</span>
+        </div>
+        <div class="space-y-1 text-sm">
+          ${config.items.map(item => `<div>• ${item}</div>`).join('')}
+        </div>
+        <div class="text-sm text-gray-600 italic mt-3">${config.details}</div>
+        ${config.risk === 'HIGH' ? '<div class="text-xs font-semibold text-red-600 mt-2">💡 High-risk actions require explicit confirmation.</div>' : ''}
+      `;
+
+      confirm.textContent = config.risk === 'HIGH' ? 'CONFIRM PURCHASE' : 
+                           config.risk === 'MEDIUM' ? 'Hold Fare' : 'Enable Watch';
+      
+      confirm.className = `flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 font-semibold ${
+        config.risk === 'HIGH' ? 'bg-red-600' :
+        config.risk === 'MEDIUM' ? 'bg-yellow-600' : 'bg-green-600'
+      }`;
+
+      modal.classList.remove('hidden');
+      
+      const handler = async () => {
+        modal.classList.add('hidden');
+        await config.onConfirm();
+        confirm.removeEventListener('click', handler);
+      };
+      
+      confirm.addEventListener('click', handler);
+      document.getElementById('modal-cancel').addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+    }
+
+    document.getElementById('toggle-contract')?.addEventListener('click', function() {
+      const display = document.getElementById('contract-display');
+      contractFull = !contractFull;
+      if (contractFull) {
+        fetch(`${API}/.well-known/agent-interface.toml`)
+          .then(r => r.text())
+          .then(text => display.textContent = text);
+        this.textContent = 'Hide Full Contract';
+      } else {
+        init();
+        this.textContent = 'Show Full Contract';
+      }
+    });
+
+    // Start
+    init();
+  </script>
+</body>
+</html>

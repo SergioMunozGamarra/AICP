@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "fare_id": {
+      "type": "string",
+      "description": "Unique identifier of the fare to watch"
+    },
+    "threshold": {
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number", "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      },
+      "required": ["amount", "currency"]
+    },
+    "notification_channel": {
+      "type": "string",
+      "enum": ["email", "sms", "agent"],
+      "description": "Where to send price change notifications"
+    }
+  },
+  "required": ["fare_id", "threshold", "notification_channel"]
+}

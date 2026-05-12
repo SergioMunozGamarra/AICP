@@ -1,0 +1,18 @@
+{
+  "data": {
+    "watch_id": "watch_789",
+    "status": "active",
+    "threshold": {
+      "amount": 700,
+      "currency": "EUR"
+    }
+  },
+  "policies": {
+    "monitoring_frequency": "provider_controlled",
+    "commercial_use": "requires_auth"
+  },
+  "provenance": {
+    "source": "Example Travel",
+    "retrieved_at": "2026-05-09T12:03:00Z"
+  }
+}

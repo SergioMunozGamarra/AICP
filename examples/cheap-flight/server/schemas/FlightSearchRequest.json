@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "origin": {
+      "type": "string",
+      "description": "IATA code of origin airport"
+    },
+    "destination": {
+      "type": "string",
+      "description": "IATA code of destination airport"
+    },
+    "departure_window": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      },
+      "required": ["start", "end"]
+    },
+    "trip_duration_days": {
+      "type": "object",
+      "properties": {
+        "min": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["min", "max"]
+    },
+    "passengers": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_stops": { "type": "integer", "minimum": 0 },
+        "checked_baggage": { "type": "boolean" },
+        "max_price": {
+          "type": "object",
+          "properties": {
+            "amount": { "type": "number", "minimum": 0 },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+          },
+          "required": ["amount", "currency"]
+        }
+      }
+    }
+  },
+  "required": ["origin", "destination", "departure_window", "passengers"]
+}

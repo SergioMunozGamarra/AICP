@@ -1,0 +1,34 @@
+{
+  "data": {
+    "hold_id": "hold_456",
+    "status": "held",
+    "expires_at": "2026-05-09T12:30:00Z",
+    "price": {
+      "amount": 682,
+      "currency": "EUR"
+    }
+  },
+  "actions": [
+    {
+      "id": "bookings.purchase",
+      "label": "Purchase this booking",
+      "method": "POST",
+      "endpoint": "/agent/bookings/purchase",
+      "risk_level": "high",
+      "requires_user_confirmation": true,
+      "input": {
+        "hold_id": "hold_456"
+      }
+    }
+  ],
+  "freshness": {
+    "valid_until": "2026-05-09T12:30:00Z",
+    "revalidation_required_before_commit": true
+  },
+  "provenance": {
+    "source": "Example Travel",
+    "retrieved_at": "2026-05-09T12:20:00Z",
+    "canonical_url": "https://example-travel.com/holds/hold_456",
+    "license": "© Example Travel; demo data for protocol testing"
+  }
+}

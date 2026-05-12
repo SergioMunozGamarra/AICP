@@ -1,0 +1,22 @@
+{
+  "data": {
+    "booking_id": "booking_901",
+    "status": "confirmed",
+    "ticket_numbers": ["ETKT-001-99887766"],
+    "charged_amount": {
+      "amount": 682,
+      "currency": "EUR"
+    }
+  },
+  "provenance": {
+    "source": "Example Travel",
+    "retrieved_at": "2026-05-09T12:08:00Z"
+  },
+  "warnings": [
+    {
+      "code": "non_refundable_segment",
+      "severity": "medium",
+      "message": "One segment is non-refundable according to fare rules."
+    }
+  ]
+}

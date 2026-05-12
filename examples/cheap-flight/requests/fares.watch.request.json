@@ -1,0 +1,8 @@
+{
+  "fare_id": "fare_123",
+  "threshold": {
+    "amount": 700,
+    "currency": "EUR"
+  },
+  "notification_channel": "agent"
+}

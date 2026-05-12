@@ -1,0 +1,74 @@
+{
+  "data": {
+    "results": [
+      {
+        "id": "fare_123",
+        "origin": "MAD",
+        "destination": "NRT",
+        "departure_time": "2026-07-04T10:20:00+02:00",
+        "arrival_time": "2026-07-05T08:30:00+09:00",
+        "airline": "Example Air",
+        "stops": 1,
+        "duration_minutes": 1090,
+        "checked_baggage_included": true,
+        "price": {
+          "amount": 682,
+          "currency": "EUR"
+        }
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "fares.watch",
+      "label": "Watch this fare",
+      "method": "POST",
+      "endpoint": "/agent/fares/watch",
+      "risk_level": "low",
+      "requires_user_confirmation": false,
+      "input": {
+        "fare_id": "fare_123",
+        "threshold": {
+          "amount": 700,
+          "currency": "EUR"
+        }
+      }
+    },
+    {
+      "id": "bookings.hold",
+      "label": "Hold this fare",
+      "method": "POST",
+      "endpoint": "/agent/bookings/hold",
+      "risk_level": "medium",
+      "requires_user_confirmation": true,
+      "input": {
+        "fare_id": "fare_123"
+      }
+    }
+  ],
+  "policies": {
+    "citation_required": true,
+    "cache": {
+      "allowed": true,
+      "max_ttl_seconds": 300
+    }
+  },
+  "provenance": {
+    "source": "Example Travel",
+    "origin": "https://example-travel.com",
+    "canonical_url": "https://example-travel.com/flights/result/fare_123",
+    "retrieved_at": "2026-05-09T12:00:00Z"
+  },
+  "freshness": {
+    "valid_until": "2026-05-09T12:15:00Z",
+    "volatility": "high",
+    "revalidation_required_before_commit": true
+  },
+  "warnings": [
+    {
+      "code": "price_may_change",
+      "severity": "medium",
+      "message": "The displayed fare is volatile and may change before purchase."
+    }
+  ]
+}

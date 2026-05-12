@@ -1,0 +1,102 @@
+aicp_version = "0.1"
+min_supported_version = "0.1"
+recommended_version = "0.1"
+
+[site]
+name = "Example Travel"
+origin = "https://sergiomunozgamarra.github.io/iacp"
+description = "Demo contract for the cheap flight running example in the paper."
+
+[formats]
+canonical = "application/aicp+toml"
+json = "application/aicp+json"
+runtime_response = "application/aom+json"
+
+[auth]
+type = "oauth2"
+authorization_url = "https://example-travel.com/oauth/authorize"
+token_url = "https://example-travel.com/oauth/token"
+available_scopes = [
+  "flights:read",
+  "fares:watch",
+  "bookings:hold",
+  "bookings:purchase"
+]
+
+[policies]
+anonymous_access = true
+commercial_use = "requires_auth"
+citation_required = true
+summarization = "allowed"
+training_use = "disallowed"
+automated_monitoring = "requires_auth"
+
+[policies.cache]
+allowed = true
+max_ttl_seconds = 300
+
+[rate_limits]
+anonymous = "20/hour"
+authenticated = "1000/hour"
+
+[provenance]
+required = true
+fields = ["source", "retrieved_at", "canonical_url", "license"]
+
+[cache]
+max_age_seconds = 3600
+stale_while_revalidate_seconds = 86400
+
+[[capabilities]]
+id = "flights.search"
+type = "query"
+description = "Search available flights with constraints."
+method = "POST"
+endpoint = "/agent/flights/search"
+risk_level = "low"
+auth = "optional"
+input_schema = "#/schemas/FlightSearchRequest"
+output_schema = "#/schemas/FlightSearchResponse"
+cache_ttl_seconds = 60
+
+[[capabilities]]
+id = "fares.watch"
+type = "monitor"
+description = "Create a price watch for a flight fare."
+method = "POST"
+endpoint = "/agent/fares/watch"
+risk_level = "low"
+auth = "required"
+required_scopes = ["fares:watch"]
+requires_user_confirmation = false
+input_schema = "#/schemas/FareWatchRequest"
+output_schema = "#/schemas/FareWatchResponse"
+
+[[capabilities]]
+id = "bookings.hold"
+type = "prepare_action"
+description = "Hold a fare temporarily before purchase."
+method = "POST"
+endpoint = "/agent/bookings/hold"
+risk_level = "medium"
+auth = "required"
+required_scopes = ["bookings:hold"]
+requires_user_confirmation = true
+idempotency_required = true
+input_schema = "#/schemas/BookingHoldRequest"
+output_schema = "#/schemas/BookingHoldResponse"
+
+[[capabilities]]
+id = "bookings.purchase"
+type = "commit_action"
+description = "Purchase a held booking."
+method = "POST"
+endpoint = "/agent/bookings/purchase"
+risk_level = "high"
+auth = "required"
+required_scopes = ["bookings:purchase"]
+requires_user_confirmation = true
+requires_strong_authentication = true
+idempotency_required = true
+input_schema = "#/schemas/BookingPurchaseRequest"
+output_schema = "#/schemas/BookingPurchaseResponse"

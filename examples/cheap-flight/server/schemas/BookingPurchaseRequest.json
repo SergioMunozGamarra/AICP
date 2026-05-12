@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "hold_id": {
+      "type": "string",
+      "description": "Identifier of the held booking to purchase"
+    },
+    "payment_method_id": {
+      "type": "string",
+      "description": "Payment method to charge"
+    },
+    "passenger": {
+      "type": "object",
+      "properties": {
+        "full_name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["full_name", "email"]
+    }
+  },
+  "required": ["hold_id", "payment_method_id", "passenger"]
+}
